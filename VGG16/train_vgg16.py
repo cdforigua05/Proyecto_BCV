@@ -55,7 +55,6 @@ val_loader = torch.utils.data.DataLoader(MelanomaDataset('./data', distribution=
     #transform=transforms),batch_size=args.batch_size, shuffle=True, **kwargs)
 
 vgg_16 = models.vgg16()
-breakpoint()
 vgg_16.classifier[6] = nn.Linear(in_features=4096, out_features=9,bias=True)
 
 if args.cuda:
@@ -69,3 +68,6 @@ if osp.exists(args.save):
         load_model = True
 
 optimizer = optim.SGD(vgg_16.parameters(), lr=args.lr, momentum=args.momentum)
+loss_function = torch.nn.CrossEntropyLoss(weight=None)
+
+
