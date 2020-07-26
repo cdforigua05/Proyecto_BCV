@@ -5,6 +5,7 @@ from torchvision import transforms
 import skimage.io as io
 import numpy as np
 import scipy.io as sio
+
 class MelanomaDataset(Dataset):
 	def __init__(self,data_path,distribution,transform=None):
 		super(myDataset,self).__init__()
@@ -52,11 +53,11 @@ class MelanomaDataset(Dataset):
 			pth = "val"
 		elif self.distribution==2:
 			pth = "test"
+		
 		ID = self.list_IDs[index]
 		label= self.labels[ID]
 		image = io.imread(os.path.join(self.data_path,pth,ID))
+		
 		if self.transform:
 			image = self.transform(image)
 		return image, label
-
-

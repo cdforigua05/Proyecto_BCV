@@ -8,10 +8,11 @@ import scipy.io as scio
 
 import torch
 import torch.nn as nn
-# import Dataset.py import MelanomaDataset
 import torch.optim as optim
 import torch.nn.functional as F
+from trainer import Trainer
 from torch.autograd import Variable
+from Dataset.py import MelanomaDataset
 from torchvision import datasets, transforms, models
 
 parser = argparse.ArgumentParser(description='VGG training file')
@@ -49,10 +50,10 @@ transforms = transforms.Compose([transforms.ToPILImage(),\
     transforms.Resize((224,224)),transforms.ToTensor(), transforms.Normalize(mean, std)])
 
 train_loader = torch.utils.data.DataLoader(MelanomaDataset('./data', distribution=0,\
-    #transform=transforms),batch_size=args.batch_size, shuffle=True, **kwargs)
+    transform=transforms),batch_size=args.batch_size, shuffle=True, **kwargs)
 
 val_loader = torch.utils.data.DataLoader(MelanomaDataset('./data', distribution=1,\
-    #transform=transforms),batch_size=args.batch_size, shuffle=True, **kwargs)
+    transform=transforms),batch_size=args.batch_size, shuffle=True, **kwargs)
 
 vgg_16 = models.vgg16()
 vgg_16.classifier[6] = nn.Linear(in_features=4096, out_features=9,bias=True)
@@ -69,5 +70,9 @@ if osp.exists(args.save):
 
 optimizer = optim.SGD(vgg_16.parameters(), lr=args.lr, momentum=args.momentum)
 loss_function = torch.nn.CrossEntropyLoss(weight=None)
+lrDecayEpoch = {3, 5, 8, 10, 12}
 
+trainer = Trainer(vgg_16, optimizer, train_loader, val_loader,loss_function, nBatch = args.batch_size,\
+    max_Epochs=args.epochs, cuda = args.cuda, lrDecayEpocs = lrDecayEpoch, gamma = args.gamma)
 
+trainer.train()
