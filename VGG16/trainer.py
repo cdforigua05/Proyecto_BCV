@@ -10,14 +10,15 @@ import os.path as osp
 
 # import torch modules
 import torch
+from Metricas.py import F_score_PR
 import torch.nn.functional as F
 from torch.autograd import Variable
 
-# utility class for training HED model
+# utility class for training VGG_16 model
 class Trainer(object):
     # init function for class
     def __init__(self, model, optimizer, trainDataloader, valDataloader, loss_function,\
-                 nBatch=10, maxEpochs=15, cuda=True, lrDecayEpochs={},gamma=2):
+                 nBatch=10, maxEpochs=15, cuda=True, lrDecayEpochs={} ,gamma=2):
         self.cuda = cuda
         # define an optimizer
         self.optim = optimizer
@@ -34,8 +35,8 @@ class Trainer(object):
         self.epoch = 0
         self.nBatch = nBatch
         self.maxepochs = maxEpochs
-        self.lrDecayEpochs = lrDecayEpochs
 
+        self.lrDecayEpocs = lrDecayEpochs
         self.gamma = gamma
         self.valInterval = 500
         self.dispInterval = 100
@@ -43,7 +44,6 @@ class Trainer(object):
 
     def train(self):
         # function to train network
-        best_loss = 0
         for epoch in range(self.epoch, self.maxepochs):
             # set function to training mode
             self.model.train()
@@ -51,7 +51,6 @@ class Trainer(object):
             # initialize gradients
             self.optim.zero_grad()
 
-            # adjust hed learning rate
             if epoch in self.lrDecayEpochs:
                 self.adjustLR()
 
@@ -65,11 +64,10 @@ class Trainer(object):
                     data, target = data.cuda(), target.cuda()
                 data, target = Variable(data), Variable(target)
                 # model forward
-                tar = target
                 output = self.model(data)
 
                 # compute loss for batch
-                loss = self.loss_func(data,target)
+                loss = self.loss_func(output,target)
 
                 if np.isnan(float(loss.data.item())):
                     raise ValueError('loss is nan while training')
@@ -96,6 +94,25 @@ class Trainer(object):
                 # perform validation every 500 iters
                 if (i+1) % self.valInterval == 0:
                     self.val(epoch + 1)
+
+    def val(self, epoch):
+        # eval model on validation set
+        print('Evaluation:')
+        # convert to test mode
+        self.model.eval()
+        # perform test inference
+        for i, sample in enumerate(self.valDataloader, 0):
+            # get the test sample
+            data, target = sample
+            if self.cuda:
+                data, target = data.cuda(), target.cuda()
+            data, target = Variable(data), Variable(target)
+            # perform forward computation
+            preds = self.model.(data)
+            F_score_PR(target, preds)
+
+        print('evaluation done')
+        self.model.train()
 
     def adjustLR(self):
         for param_group in self.optim.param_groups:
