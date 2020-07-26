@@ -22,9 +22,10 @@ class MelanomaDataset(Dataset):
 			pth = "train"
 		elif self.distribution==1:
 			pth = "val"
-		else self.distribution==2:
+		elif self.distribution==2:
 			pth = "test"
 		names = os.listdir(os.path.join(self.data_path,pth))
+		names = sorted(names)
 		for image in names:
 			IDs.append(image)	
 		return IDs
@@ -35,7 +36,7 @@ class MelanomaDataset(Dataset):
 			annots = annots["train"][0]
 		elif self.distribution==1:
 			annots = annots["val"][0]
-		else self.distribution==2:
+		elif self.distribution==2:
 			annots = annots["test"][0]
 		for ID,label in zip(self.list_IDS,annots):
 			labels[ID] = label
@@ -49,7 +50,7 @@ class MelanomaDataset(Dataset):
 			pth = "train"
 		elif self.distribution==1:
 			pth = "val"
-		else self.distribution==2:
+		elif self.distribution==2:
 			pth = "test"
 		ID = self.list_IDs[index]
 		label= self.labels[ID]
