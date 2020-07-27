@@ -94,7 +94,7 @@ class Trainer(object):
             if (best_loss is None) or (test_loss<best_loss):
                 best_loss=test_loss
                 with open("Inception_model.pt", 'wb') as fp:
-                    state = model.state_dict()
+                    state = self.model.state_dict()
                     torch.save(state, fp)
             else: 
                 self.adjustLR()

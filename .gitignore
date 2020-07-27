@@ -1,3 +1,4 @@
 data/
 data.tar.gz
 model/
+Inception/Inception_model.pt
