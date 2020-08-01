@@ -7,7 +7,7 @@ from sklearn.metrics import precision_recall_curve
 from sklearn.metrics import average_precision_score
 
 melanomas = ["Melanoma","Melanotyc Venus","Basal Cell Carcinoma","Actinic Keratosis","Benign Keratosis","Dermato fibroma"\
-				,"Vascular Lesion","Squamous cell carcinoma","x","y"]
+				,"Vascular Lesion","Squamous cell carcinoma"]
 
 def F_Medida(target, pred): 
 	pred = pred.data.max(1)[1]
@@ -19,13 +19,12 @@ def F_Medida(target, pred):
 def PR(target,pred): 
 	pred = pred.cpu().detach().numpy()
 	target = target.cpu().detach().numpy()
-	target_bin = label_binarize(target,classes=[0,1,2,3,4,5,6,7,8,9])
+	target_bin = label_binarize(target,classes=[0,1,2,3,4,5,6,7])
 	classes = target_bin.shape[1]
 	AUC = {}
 	
 	for i in range(classes):
 		AUC[i] = average_precision_score(target_bin[:,i],pred[:,i])
-	
 	return AUC
 
 def F_score_PR(target,pred): 
@@ -38,6 +37,8 @@ def F_score_PR(target,pred):
 		print(name.ljust(23),"|{:.4f}".format(f1)+" |{:.4f}".format(AP))
 	print("Mean".ljust(23),"|{:.4f}".format(np.mean(scores))+" |{:.4f}".format(np.mean(list(AUC.values()))))
 	print("-"*60)
+
+	return np.mean(scores)
 
 		
 

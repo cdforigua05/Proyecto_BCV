@@ -29,6 +29,7 @@ class MelanomaDataset(Dataset):
 		for image in names:
 			IDs.append(image)	
 		return IDs
+		
 	def get_labels(self): 
 		labels={}
 		annots=sio.loadmat(os.path.join(self.data_path,"Anotaciones.mat"))
