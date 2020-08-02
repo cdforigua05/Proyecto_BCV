@@ -1,5 +1,6 @@
 data/
 data.tar.gz
+Inception/Inception_model.pt
 model/
 .vscode/
 VGG16/model_vgg16_pretrained_dataaug.pt
@@ -7,3 +8,4 @@ VGG16/model_vgg16_pretrained.pt
 VGG16/model_vgg16.pt
 VGG16/model_vgg16_data_aug.pt
 melanoma_dataset/
+VGG16/__pycache__/
