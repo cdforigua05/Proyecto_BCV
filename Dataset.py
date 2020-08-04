@@ -8,7 +8,7 @@ import scipy.io as sio
 
 class MelanomaDataset(Dataset):
 	def __init__(self,data_path,distribution,transform=None):
-		super(myDataset,self).__init__()
+		super(MelanomaDataset,self).__init__()
 		self.distribution = distribution
 		self.data_path = data_path
 		self.list_IDs = self.get_IDs(distribution)

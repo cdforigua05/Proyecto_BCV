@@ -1,3 +1,8 @@
 data/
 data.tar.gz
 model/
+__pycache__
+DenseNet/NoAugModel.pt
+DenseNet/PreTAugModel_01.pt
+DenseNet/ScratchAug01.pt
+DenseNet/ScratchNoAug.pt
