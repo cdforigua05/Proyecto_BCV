@@ -126,7 +126,7 @@ class Trainer(object):
                 'state_dict': self.model.module.state_dict(),
                 'optimizer': self.optimizer.state_dict(),
                 'best_pred': self.best_pred,
-            }, is_best)
+            }, is_best,filename='checkpoint_last_epoch.pth.tar')
 
 
     def validation(self, epoch):
@@ -201,11 +201,11 @@ def main():
                         choices=['ce', 'focal'],
                         help='loss func type (default: ce)')
     # training hyper params
-    parser.add_argument('--epochs', type=int, default=20, metavar='N',
+    parser.add_argument('--epochs', type=int, default=10, metavar='N',
                         help='number of epochs to train (default: auto)')
     parser.add_argument('--start_epoch', type=int, default=0,
                         metavar='N', help='start epochs (default:0)')
-    parser.add_argument('--batch-size', type=int, default=64,
+    parser.add_argument('--batch-size', type=int, default=10,
                         metavar='N', help='input batch size for \
                                 training (default: auto)')
     parser.add_argument('--test-batch-size', type=int, default=64,
@@ -228,7 +228,7 @@ def main():
     # cuda, seed and logging
     parser.add_argument('--no-cuda', action='store_true', default=
                         False, help='disables CUDA training')
-    parser.add_argument('--gpu-ids', type=str, default='1',
+    parser.add_argument('--gpu-ids', type=str, default=[0,1],
                         help='use which gpu to train, must be a \
                         comma-separated list of integers only (default=0)')
     parser.add_argument('--seed', type=int, default=1, metavar='S',
@@ -242,7 +242,7 @@ def main():
     parser.add_argument('--ft', action='store_true', default=True,
                         help='finetuning on a different dataset (default = False)')
     # evaluation option
-    parser.add_argument('--eval-interval', type=int, default=500,
+    parser.add_argument('--eval-interval', type=int, default=1,
                         help='evaluation interval (default: 1)')
     parser.add_argument('--no-val', action='store_true', default=False,
                         help='skip validation during training')
@@ -251,7 +251,7 @@ def main():
     args.cuda = not args.no_cuda and torch.cuda.is_available()
     if args.cuda:
         try:
-            args.gpu_ids = [int(s) for s in args.gpu_ids.split(',')]
+            args.gpu_ids = [int(s) for s in args.gpu_ids]#[int(s) for s in args.gpu_ids.split(',')]
         except ValueError:
             raise ValueError('Argument --gpu_ids must be a comma-separated list of integers only')
 
@@ -294,10 +294,9 @@ def main():
     print('Total Epoches:', trainer.args.epochs)
     for epoch in range(trainer.args.start_epoch, trainer.args.epochs):
         trainer.training(epoch)
-        if not trainer.args.no_val and epoch % args.eval_interval == (args.eval_interval - 1):
-            trainer.validation(epoch)
+        trainer.validation(epoch)
 
     trainer.writer.close()
 
 if __name__ == "__main__":
-   main()
+    main()
