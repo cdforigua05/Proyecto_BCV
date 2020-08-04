@@ -10,15 +10,14 @@ import os.path as osp
 
 # import torch modules
 import torch
-from Metricas.py import F_score_PR
+from Metricas import F_score_PR, F_Medida
 import torch.nn.functional as F
 from torch.autograd import Variable
 
 # utility class for training VGG_16 model
 class Trainer(object):
     # init function for class
-    def __init__(self, model, optimizer, trainDataloader, valDataloader, loss_function,\
-                 nBatch=10, maxEpochs=15, cuda=True, lrDecayEpochs={} ,gamma=2):
+    def __init__(self, model, optimizer, trainDataloader, valDataloader, loss_function, maxEpochs=15, gamma=2, cuda=True):
         self.cuda = cuda
         # define an optimizer
         self.optim = optimizer
@@ -32,87 +31,63 @@ class Trainer(object):
         self.valDataloader = valDataloader
 
         # set training parameters
-        self.epoch = 0
-        self.nBatch = nBatch
         self.maxepochs = maxEpochs
-
-        self.lrDecayEpocs = lrDecayEpochs
         self.gamma = gamma
-        self.valInterval = 500
-        self.dispInterval = 100
+        self.dispInterval = 10
         self.timeformat = '%Y-%m-%d %H:%M:%S'
 
-    def train(self):
+    def train(self,epoch):
         # function to train network
-        for epoch in range(self.epoch, self.maxepochs):
-            # set function to training mode
-            self.model.train()
+        # set function to training mode
+        self.model.train()
 
-            # initialize gradients
+        for index, sample in enumerate(self.trainDataloader):
+            # get the training batch
+            data, target = sample
+            if self.cuda:
+                data, target = data.cuda(), target.cuda()
+            data, target = Variable(data), Variable(target)
             self.optim.zero_grad()
+            # model forward
+            output = self.model(data)
+            # compute loss for batch
+            loss = self.loss_func(output,target.long())
+            loss.backward()
+            self.optim.step()
 
-            if epoch in self.lrDecayEpochs:
-                self.adjustLR()
+            if np.isnan(float(loss.data.item())):
+                raise ValueError('loss is nan while training')
 
-            # train the network
-            losses = []
-            lossAcc = 0.0
-            for i, sample in enumerate(self.trainDataloader, 0):
-                # get the training batch
-                data, target = sample
-                if self.cuda:
-                    data, target = data.cuda(), target.cuda()
-                data, target = Variable(data), Variable(target)
-                # model forward
-                output = self.model(data)
-
-                # compute loss for batch
-                loss = self.loss_func(output,target)
-
-                if np.isnan(float(loss.data.item())):
-                    raise ValueError('loss is nan while training')
-                    break
-
-                losses.append(loss)
-                lossAcc += loss.item()
-
-                # perform backpropogation and update network
-                if i % self.nBatch == 0:
-                    bLoss = sum(losses)
-                    bLoss.backward()
-                    self.optim.step()
-                    self.optim.zero_grad()
-                    losses = []
-
-                # visualize the loss
-                if (i + 1) % self.dispInterval == 0:
-                    timestr = time.strftime(self.timeformat, time.localtime())
-                    print("%s epoch: %d iter:%d loss:%.6f"%(
-                        timestr, epoch+1, i+1, lossAcc/self.dispInterval))
-                    lossAcc = 0.0
-
-                # perform validation every 500 iters
-                if (i+1) % self.valInterval == 0:
-                    self.val(epoch + 1)
+            # visualize the loss
+            if index % self.dispInterval == 0:
+                timestr = time.strftime(self.timeformat, time.localtime())
+                print("{} epoch: {} per:{}/{} ({:.0f}%) loss:{:.6f}".format(timestr,epoch,(index+1)*len(data),\
+                    len(self.trainDataloader.dataset),100.*(index+1)/len(self.trainDataloader),loss.data.item()))
 
     def val(self, epoch):
         # eval model on validation set
         print('Evaluation:')
         # convert to test mode
         self.model.eval()
+        test_loss = 0
+        target_total = torch.tensor([],dtype=torch.int32).cuda()
+        pred_total = torch.tensor([],dtype=torch.float32).cuda()
         # perform test inference
-        for i, sample in enumerate(self.valDataloader, 0):
-            # get the test sample
+        for index, sample in enumerate(self.valDataloader):
             data, target = sample
             if self.cuda:
                 data, target = data.cuda(), target.cuda()
             data, target = Variable(data), Variable(target)
             # perform forward computation
-            preds = self.model.(data)
-            F_score_PR(target, preds)
+            preds = self.model(data)
+            test_loss += self.loss_func(preds,target.long()).data
+            pred_total = torch.cat((pred_total,preds.data),0)
+            target_total = torch.cat((target_total,target.data))
+
+        x = F_score_PR(target_total, pred_total)
 
         print('evaluation done')
-        self.model.train()
+        return test_loss, x
 
     def adjustLR(self):
         for param_group in self.optim.param_groups:

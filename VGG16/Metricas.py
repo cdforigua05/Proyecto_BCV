@@ -25,7 +25,6 @@ def PR(target,pred):
 	
 	for i in range(classes):
 		AUC[i] = average_precision_score(target_bin[:,i],pred[:,i])
-	
 	return AUC
 
 def F_score_PR(target,pred): 
@@ -38,6 +37,8 @@ def F_score_PR(target,pred):
 		print(name.ljust(23),"|{:.4f}".format(f1)+" |{:.4f}".format(AP))
 	print("Mean".ljust(23),"|{:.4f}".format(np.mean(scores))+" |{:.4f}".format(np.mean(list(AUC.values()))))
 	print("-"*60)
+
+	return np.mean(scores)
 
 		
 
