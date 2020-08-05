@@ -201,7 +201,7 @@ def main():
                         choices=['ce', 'focal'],
                         help='loss func type (default: ce)')
     # training hyper params
-    parser.add_argument('--epochs', type=int, default=10, metavar='N',
+    parser.add_argument('--epochs', type=int, default=20, metavar='N',
                         help='number of epochs to train (default: auto)')
     parser.add_argument('--start_epoch', type=int, default=0,
                         metavar='N', help='start epochs (default:0)')
@@ -244,7 +244,7 @@ def main():
     # evaluation option
     parser.add_argument('--eval-interval', type=int, default=1,
                         help='evaluation interval (default: 1)')
-    parser.add_argument('--no-val', action='store_true', default=False,
+    parser.add_argument('--no-val', action='store_true', default=True,
                         help='skip validation during training')
 
     args = parser.parse_args()
