@@ -11,7 +11,7 @@ from dataloaders import custom_transforms as tr
 class ISICsegmentation(data.Dataset):
     NUM_CLASSES = 2
 
-    def __init__(self, args, root=Path.db_root_dir('isic'), split="train"):
+    def __init__(self, args, root=Path.db_root_dir('isic'), split='train'):
 
         self.root = root
         self.split = split
@@ -20,10 +20,10 @@ class ISICsegmentation(data.Dataset):
 
         self.images_base = os.path.join(self.root, self.split, 'images')
         self.annotations_base = os.path.join(self.root, self.split, 'annotations')
-
+    
         self.files[split] = self.recursive_glob(rootdir=self.images_base, suffix='.jpg')
-
-        self.void_classes = [2]
+        #breakpoint()
+        self.void_classes = []
         self.valid_classes = [0,1]
         self.class_names = ['background','lunar']
 
@@ -41,7 +41,11 @@ class ISICsegmentation(data.Dataset):
     def __getitem__(self, index):
 
         img_path = self.files[self.split][index].rstrip()
-        lbl_path = os.path.join(self.annotations_base,img_path[:11],'_segmentation.png')
+        #breakpoint()
+        if self.split == 'train':
+            lbl_path = os.path.join(self.annotations_base,img_path[40:52]+'_segmentation.png')
+        else:
+            lbl_path = os.path.join(self.annotations_base,img_path[38:50]+'_segmentation.png')
 
         _img = Image.open(img_path).convert('RGB')
         _tmp = np.array(Image.open(lbl_path), dtype=np.uint8)
@@ -70,9 +74,20 @@ class ISICsegmentation(data.Dataset):
             :param rootdir is the root directory
             :param suffix is the suffix to be searched
         """
+        #breakpoint()
+        #for looproot, _, filenames in os.walk(rootdir):
+        #    for filename in filenames:
+        #        if filename.endswith(suffix) and not filename.startswith('.'):
+        #            print(filename)
+        #            os.path.join(looproot, filename)
+
+        #x = [os.path.join(looproot, filename)
+        # for looproot, _, filenames in os.walk(rootdir)
+        # for filename in filenames if filename.endswith(suffix) and not filename.startswith('.')]
+
         return [os.path.join(looproot, filename)
                 for looproot, _, filenames in os.walk(rootdir)
-                for filename in filenames if filename.endswith(suffix)]
+                for filename in filenames if filename.endswith(suffix) and not filename.startswith('.')]
 
     def transform_tr(self, sample):
         composed_transforms = transforms.Compose([

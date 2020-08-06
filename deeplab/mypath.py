@@ -10,7 +10,7 @@ class Path(object):
         elif dataset == 'coco':
             return '/path/to/datasets/coco/'
         elif dataset == 'isic':
-            return '~/data/isic/'
+            return '/home/jsbautista/data/isic/'
         else:
             print('Dataset {} not available.'.format(dataset))
             raise NotImplementedError

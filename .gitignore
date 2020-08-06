@@ -2,6 +2,13 @@ data/
 data.tar.gz
 Inception/Inception_model.pt
 model/
+<<<<<<< HEAD
+__pycache__
+DenseNet/NoAugModel.pt
+DenseNet/PreTAugModel_01.pt
+DenseNet/ScratchAug01.pt
+DenseNet/ScratchNoAug.pt
+=======
 .vscode/
 VGG16/model_vgg16_pretrained_dataaug.pt
 VGG16/model_vgg16_pretrained.pt
@@ -9,3 +16,4 @@ VGG16/model_vgg16.pt
 VGG16/model_vgg16_data_aug.pt
 melanoma_dataset/
 VGG16/__pycache__/
+>>>>>>> b7580b3a1c3b2ae396d9124740124a865ac39a12
