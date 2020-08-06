@@ -19,7 +19,7 @@ class MelanomaDataset(Dataset):
 		#ejemplo: "/home/cdforigua/Proyecto_BCV/deeplab/deeplab-resnet.pth.tar"
 	# el input size esta por default en 224, que creo que es el tamaño de entrada de DenseNet. 
 
-	def __init__(self,data_path,distribution=0,transform=None,num_classes=2, backbone='resnet',cuda=True, 
+	def __init__(self,data_path,distribution=0,num_classes=2, backbone='resnet',cuda=True, 
 					out_stride=16,sync_bn=True,freeze_bn=False,path_seg="deeplab-resnet.pth.tar",input_size=224):
 		super(MelanomaDataset,self).__init__()
 		self.distribution = distribution
