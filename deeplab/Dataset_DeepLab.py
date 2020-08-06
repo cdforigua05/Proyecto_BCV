@@ -87,11 +87,11 @@ class MelanomaDataset(Dataset):
 		bin = np.array(seg)
 		bin[bin<100]=0
 		bin[bin>=100]=1
+		matplotlib.image.imsave("prueba12.png",bin)
 		seg = Image.fromarray(bin)
 		#mask = np.ones([seg.size[1],seg.size[0]])
 		#mask[seg!=[252, 222, 76]]=0
 		#matplotlib.image.imsave("prueba1.png",np.array(mask))
-		breakpoint()
 		sample = {'image':image, 'label':seg}
 		if self.distribution == 0:
 			sample = self.transforms_train_esp(sample)
@@ -125,6 +125,6 @@ class MelanomaDataset(Dataset):
             ]) 
 		return composed_transforms(sample)
 
-a = MelanomaDataset('../data',distribution=0,path_seg="/home/cdforigua/Proyecto_BCV/mask")
-a.__getitem__(0)
+#a = MelanomaDataset('../data',distribution=0,path_seg="/home/cdforigua/Proyecto_BCV/mask")
+#a.__getitem__(24)
 
