@@ -16,6 +16,7 @@ from Dataset_Props import PropsDataset as dset
 from torch.utils.data import DataLoader
 from Metricas import F_score_PR as F
 import DensNet as DN
+import custom_transforms as tr
 #Check if cuda is avaiable
 cuda = torch.cuda.is_available()
 
@@ -121,21 +122,21 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs, model_name
 num_classes = 8
 bs = 16
 num_epochs = 15
-model = DN.densenet121(pretrained=False, progress=True, **kwargs)
+model = DN.densenet121(pretrained=False, progress=True)
 model_state = model.state_dict()
 pretrained_dict = torch.load("Pretrained_Baseline.pt")
-pretained_dict_DN = torch.load("Pretrained_Baseline.pt")
-del pretained_dict_DN['classifier.weight']
-del pretained_dict_DN['classifier.bias']
+pretrained_dict_DN = torch.load("Pretrained_Baseline.pt")
+del pretrained_dict_DN['classifier.weight']
+del pretrained_dict_DN['classifier.bias']
 pretrained_dict_MLP = torch.load("TestRegPrp3.pt")
 del pretrained_dict_MLP['classifier.weight']
 del pretrained_dict_MLP['classifier.bias']
 #pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in model_state}
 model_state.update(pretrained_dict_DN)
-model_state.update(pretraines_dict_MLP)
+model_state.update(pretrained_dict_MLP)
 model.load_state_dict(model_state)
-dataloader_train = DataLoader(dset(data_path="../data",pesos_path="Pretrained_Baseline.pt", seg_path="../mask", distribution=0,cuda=cuda),batch_size=bs, shuffle=True, **kwargs)
-dataloader_val = DataLoader(dset(data_path="../data",pesos_path="Pretrained_Baseline.pt", seg_path="../mask", distribution=1,cuda=cuda),batch_size=bs, shuffle=False, **kwargs)
+dataloader_train = DataLoader(dset(data_path="../data",pesos_path="Pretrained_Baseline.pt", seg_path="../mask", distribution=0,cuda=cuda,input_size=224),batch_size=bs, shuffle=True, **kwargs)
+dataloader_val = DataLoader(dset(data_path="../data",pesos_path="Pretrained_Baseline.pt", seg_path="../mask", distribution=1,cuda=cuda,input_size=224),batch_size=bs, shuffle=False, **kwargs)
 dataloaders = {'train':dataloader_train, 'val':dataloader_val}
 
 # Send the model to Cuda

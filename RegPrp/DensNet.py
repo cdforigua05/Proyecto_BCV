@@ -4,7 +4,10 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.utils.checkpoint as cp
 from collections import OrderedDict
-from .utils import load_state_dict_from_url
+try:
+    from torch.hub import load_state_dict_from_url
+except ImportError:
+    from torch.utils.model_zoo import load_url as load_state_dict_from_url
 from torch import Tensor
 from torch.jit.annotations import List
 
@@ -49,7 +52,7 @@ class _DenseLayer(nn.Module):
                 return True
         return False
 
-    @torch.jit.unused  # noqa: T484
+      # noqa: T484
     def call_checkpoint_bottleneck(self, input):
         # type: (List[Tensor]) -> Tensor
         def closure(*inputs):
@@ -57,12 +60,12 @@ class _DenseLayer(nn.Module):
 
         return cp.checkpoint(closure, *input)
 
-    @torch.jit._overload_method  # noqa: F811
+     # noqa: F811
     def forward(self, input):
         # type: (List[Tensor]) -> (Tensor)
         pass
 
-    @torch.jit._overload_method  # noqa: F811
+      # noqa: F811
     def forward(self, input):
         # type: (Tensor) -> (Tensor)
         pass
@@ -139,7 +142,7 @@ class DenseNet(nn.Module):
     """
 
     def __init__(self, growth_rate=32, block_config=(6, 12, 24, 16),
-                 num_init_features=64, bn_size=4, drop_rate=0, num_classes=1000, memory_efficient=False):
+                 num_init_features=64, bn_size=4, drop_rate=0, num_classes=8, memory_efficient=False):
 
         super(DenseNet, self).__init__()
 
@@ -202,7 +205,7 @@ class DenseNet(nn.Module):
         out2 = F.relu(out2)
         out2 = self.fc2(out2)
         out = torch.flatten(out, 1)
-        out = out.cat(out2)
+        out=torch.cat((out,out2),dim=1)
         out = self.classifier(out)
         return out
 
