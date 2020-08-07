@@ -22,7 +22,11 @@ def PR(target,pred):
 	AUC = {}
 	
 	for i in range(classes):
-		AUC[i] = average_precision_score(target_bin[:,i],pred[:,i])
+		try:
+			AUC[i] = average_precision_score(target_bin[:,i],pred[:,i])
+		except:
+			print(target_bin[:,i])
+			print(pred[:,i])
 	
 	return AUC
 

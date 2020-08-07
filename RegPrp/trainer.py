@@ -15,6 +15,7 @@ from Dataset_Props import PropsDataset as dset
 #from MLP import CrisAyoNet
 from torch.utils.data import DataLoader
 from Metricas import F_score_PR as F
+import torch.nn.functional as Fe
 import DensNet as DN
 import custom_transforms as tr
 #Check if cuda is avaiable
@@ -76,9 +77,10 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs, model_name
                         # forward
                         # track history if only in train
                         with torch.set_grad_enabled(phase == 'train'):
+                            
                             outputs = model(inputs,regprp)
+                            print(outputs)
                             loss = criterion(outputs, labels)
-
                             _, preds = torch.max(outputs, 1)
 
                             # Optimization and back propagation
@@ -92,6 +94,7 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs, model_name
                         pbar2.update(1)
 
                 epoch_loss = running_loss / len(dataloaders[phase].dataset)
+                breakpoint()
                 epoch_acc, mAPs = F(labels, outputs)
 
                 print('{} Loss: {:.4f} Acc: {:.4f}'.format(phase, epoch_loss, epoch_acc))
@@ -160,4 +163,4 @@ weights = [17606/5086,17606/17606,17606/3477,17606/1077,17606/3338,17606/313,176
 class_weights = torch.FloatTensor(weights).cuda()
 criterion = torch.nn.CrossEntropyLoss(weight=class_weights)
 
-model_ft, hist = train_model(model, dataloaders, criterion, optimizer, num_epochs=num_epochs, model_name='TestRegPrp3.pt')
+model_ft, hist = train_model(model, dataloaders, criterion, optimizer, num_epochs=num_epochs, model_name='Concat3.pt')

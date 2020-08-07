@@ -16,7 +16,7 @@ from Dataset_Props4Channel import PropsDataset as dset
 from torch.utils.data import DataLoader
 from Metricas import F_score_PR as F
 import torch.nn.functional as Fe
-import DensNet as DN
+import DensNet4Channel as DN
 #Check if cuda is avaiable
 cuda = torch.cuda.is_available()
 
@@ -122,12 +122,12 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs, model_name
 num_classes = 8
 bs = 16
 num_epochs = 15
-model = DN.densenet121(pretrained=False, progress=True, **kwargs)
+model = DN.densenet121(pretrained=False, progress=True)
 model_state = model.state_dict()
 
-pretained_dict_DN = torch.load("Segmented_Pretrained_DeepLabScratch01.pt")
-del pretained_dict_DN['classifier.weight']
-del pretained_dict_DN['classifier.bias']
+pretrained_dict_DN = torch.load("Segmented_Pretrained_DeepLabScratch01.pt")
+del pretrained_dict_DN['classifier.weight']
+del pretrained_dict_DN['classifier.bias']
 
 pretrained_dict_MLP = torch.load("TestRegPrp3.pt")
 del pretrained_dict_MLP['classifier.weight']
@@ -135,10 +135,10 @@ del pretrained_dict_MLP['classifier.bias']
 
 #pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in model_state}
 model_state.update(pretrained_dict_DN)
-model_state.update(pretraines_dict_MLP)
+model_state.update(pretrained_dict_MLP)
 model.load_state_dict(model_state)
-dataloader_train = DataLoader(dset(data_path="../data",pesos_path="Pretrained_Baseline.pt", seg_path="../mask", distribution=0,cuda=cuda),batch_size=bs, shuffle=True, **kwargs)
-dataloader_val = DataLoader(dset(data_path="../data",pesos_path="Pretrained_Baseline.pt", seg_path="../mask", distribution=1,cuda=cuda),batch_size=bs, shuffle=False, **kwargs)
+dataloader_train = DataLoader(dset(data_path="../data",pesos_path="Pretrained_Baseline.pt", seg_path="../mask", distribution=0,cuda=cuda,input_size=224),batch_size=bs, shuffle=True, **kwargs)
+dataloader_val = DataLoader(dset(data_path="../data",pesos_path="Pretrained_Baseline.pt", seg_path="../mask", distribution=1,cuda=cuda,input_size=224),batch_size=bs, shuffle=False, **kwargs)
 dataloaders = {'train':dataloader_train, 'val':dataloader_val}
 
 # Send the model to Cuda
@@ -162,4 +162,4 @@ weights = [17606/5086,17606/17606,17606/3477,17606/1077,17606/3338,17606/313,176
 class_weights = torch.FloatTensor(weights).cuda()
 criterion = torch.nn.CrossEntropyLoss(weight=class_weights)
 
-model_ft, hist = train_model(model, dataloaders, criterion, optimizer, num_epochs=num_epochs, model_name='TestRegPrp3.pt')
+model_ft, hist = train_model(model, dataloaders, criterion, optimizer, num_epochs=num_epochs, model_name='Concat4.pt')
