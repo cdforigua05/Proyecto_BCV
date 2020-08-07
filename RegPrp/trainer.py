@@ -11,10 +11,10 @@ import time
 import os
 import copy
 from tqdm import tqdm
-import Dataset_prop as dset
+from Dataset_Props import PropsDataset as dset
 from MLP import CrisAyoNet
 from torch.utils.data import DataLoader
-
+from Metricas import F_score_PR as F
 #Check if cuda is avaiable
 cuda = torch.cuda.is_available()
 
@@ -26,6 +26,7 @@ if cuda:
 
 # Establish cuda kwargs
 kwargs = {'num_workers': 4, 'pin_memory': True} if cuda else {}
+
 
 
 def train_model(model, dataloaders, criterion, optimizer, num_epochs, model_name):
@@ -89,7 +90,7 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs, model_name
                         pbar2.update(1)
 
                 epoch_loss = running_loss / len(dataloaders[phase].dataset)
-                epoch_acc = running_corrects.double() / len(dataloaders[phase].dataset)
+                epoch_acc, mAPs = F(labels, outputs)
 
                 print('{} Loss: {:.4f} Acc: {:.4f}'.format(phase, epoch_loss, epoch_acc))
 
@@ -120,10 +121,14 @@ num_classes = 8
 bs = 16
 num_epochs = 15
 model = CrisAyoNet()
-dataloader_train = DataLoader(dset.PropsDataset())
-dataloader_val = DataLoader(dset.PropsDataset())
+model_state = model.state_dict()
+pretrained_dict = torch.load("Pretrained_Baseline.pt")
+pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in model_state}
+model_state.update(pretrained_dict)
+model.load_state_dict(model_state)
+dataloader_train = DataLoader(dset(data_path="../data",pesos_path="Pretrained_Baseline.pt", seg_path="../mask", distribution=0,cuda=cuda),batch_size=bs, shuffle=True, **kwargs)
+dataloader_val = DataLoader(dset(data_path="../data",pesos_path="Pretrained_Baseline.pt", seg_path="../mask", distribution=1,cuda=cuda),batch_size=bs, shuffle=False, **kwargs)
 dataloaders = {'train':dataloader_train, 'val':dataloader_val}
-
 
 # Send the model to Cuda
 if cuda:
@@ -139,11 +144,11 @@ for name,param in model.named_parameters():
 # Define the SGD Optimizer
 learning_rate = 0.001
 momentum = 0.9
-optimizer_ft = optim.SGD(params_to_update, lr=learning_rate, momentum=momentum)
+optimizer = optim.SGD(params_to_update, lr=learning_rate, momentum=momentum)
 
 # Setup the loss function
 weights = [17606/5086,17606/17606,17606/3477,17606/1077,17606/3338,17606/313,17606/350,17606/564]
 class_weights = torch.FloatTensor(weights).cuda()
 criterion = torch.nn.CrossEntropyLoss(weight=class_weights)
 
-model_ft, hist = train_model(model, dataloaders, criterion, optimizer, num_epochs=num_epochs, model_name='TestRegPrp.pt')
+model_ft, hist = train_model(model, dataloaders, criterion, optimizer, num_epochs=num_epochs, model_name='TestRegPrp3.pt')

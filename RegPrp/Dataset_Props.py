@@ -8,7 +8,7 @@ import scipy.io as sio
 from PIL import Image
 import matplotlib.pyplot as plt
 import matplotlib
-from Region_props import getProps
+from RegionProps import getProps
 
 class PropsDataset(Dataset):
 	def __init__(self,data_path=None,pesos_path=None, seg_path=None, distribution=0,cuda=True):
@@ -63,8 +63,38 @@ class PropsDataset(Dataset):
 		ID = self.list_IDs[index]
 		label= self.labels[ID]
 		seg = Image.open(os.path.join(self.seg_path,pth,ID)).convert('L')
+		image=Image.open(os.path.join(self.data_path,pth,ID)).convert('RGB')
 		bin = np.array(seg,dtype=np.uint8)
 		bin[bin<100]=0
 		bin[bin>=100]=1
+		seg = Image.fromarray(bin)
+		sample = {'image':image, 'label':seg}
+		if self.distribution == 0:
+			sample = self.transforms_train_esp(sample)
+		elif self.distribution!=0: 
+			sample = self.transforms_val(sample)
+		img = sample["image"]
+		mask = sample["label"]
+		bin = mask.numpy()
 		region_props = getProps(bin)
-		return region_props, label
+		return img,region_props,label
+
+	def transforms_val(self,sample): 
+		composed_transforms = transforms.Compose([
+			tr.FixedResize(size=self.input_size),
+            tr.Normalize(mean=[0.485, 0.456, 0.406],std=[0.229, 0.224, 0.225]),
+            tr.ToTensor()
+			])
+		return composed_transforms(sample)
+
+	def transforms_train_esp(self,sample):
+		composed_transforms = transforms.Compose([
+			tr.RandomVerticalFlip(),
+            tr.RandomHorizontalFlip(),
+            tr.RandomAffine(degrees=40, scale=(.9, 1.1), shear=30),
+            tr.ColorJitter(brightness=0.5, contrast=0.5, saturation=0.5),
+            tr.FixedResize(size=self.input_size),
+            tr.Normalize(mean=[0.485, 0.456, 0.406],std=[0.229, 0.224, 0.225]),
+            tr.ToTensor()            
+            ]) 
+		return composed_transforms(sample)
