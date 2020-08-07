@@ -178,8 +178,8 @@ class DenseNet(nn.Module):
 
         # Linear layer
         self.classifier = nn.Sequential(
-            nn.Linear(num_features+1024,1024),
-            nn.Linear(1024, num_classes),
+            nn.Linear(num_features+1024,num_classes),
+            #nn.Linear(1024, num_classes),
             )
 
         self.fc1 = nn.Linear(7,512,bias=True)
