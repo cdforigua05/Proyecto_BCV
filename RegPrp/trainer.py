@@ -12,9 +12,10 @@ import os
 import copy
 from tqdm import tqdm
 from Dataset_Props import PropsDataset as dset
-from MLP import CrisAyoNet
+#from MLP import CrisAyoNet
 from torch.utils.data import DataLoader
 from Metricas import F_score_PR as F
+import DensNet as DN
 #Check if cuda is avaiable
 cuda = torch.cuda.is_available()
 
@@ -63,10 +64,10 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs, model_name
 
                 # Iterate over data.
                 with tqdm(total=len(dataloaders[phase])) as pbar2:
-                    for inputs, labels in dataloaders[phase]:
+                    for inputs, regprp, labels in dataloaders[phase]:
                         labels = labels.long()
                         if cuda:
-                            inputs, labels = inputs.cuda(), labels.cuda()
+                            inputs, regprp, labels = inputs.cuda(), regprp.cuda(), labels.cuda()
 
                         # zero the parameter gradients
                         optimizer.zero_grad()
@@ -74,7 +75,7 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs, model_name
                         # forward
                         # track history if only in train
                         with torch.set_grad_enabled(phase == 'train'):
-                            outputs = model(inputs)
+                            outputs = model(inputs,regprp)
                             loss = criterion(outputs, labels)
 
                             _, preds = torch.max(outputs, 1)
@@ -120,11 +121,18 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs, model_name
 num_classes = 8
 bs = 16
 num_epochs = 15
-model = CrisAyoNet()
+model = DN.densenet121(pretrained=False, progress=True, **kwargs)
 model_state = model.state_dict()
 pretrained_dict = torch.load("Pretrained_Baseline.pt")
-pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in model_state}
-model_state.update(pretrained_dict)
+pretained_dict_DN = torch.load("Pretrained_Baseline.pt")
+del pretained_dict_DN['classifier.weight']
+del pretained_dict_DN['classifier.bias']
+pretrained_dict_MLP = torch.load("TestRegPrp3.pt")
+del pretrained_dict_MLP['classifier.weight']
+del pretrained_dict_MLP['classifier.bias']
+#pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in model_state}
+model_state.update(pretrained_dict_DN)
+model_state.update(pretraines_dict_MLP)
 model.load_state_dict(model_state)
 dataloader_train = DataLoader(dset(data_path="../data",pesos_path="Pretrained_Baseline.pt", seg_path="../mask", distribution=0,cuda=cuda),batch_size=bs, shuffle=True, **kwargs)
 dataloader_val = DataLoader(dset(data_path="../data",pesos_path="Pretrained_Baseline.pt", seg_path="../mask", distribution=1,cuda=cuda),batch_size=bs, shuffle=False, **kwargs)
